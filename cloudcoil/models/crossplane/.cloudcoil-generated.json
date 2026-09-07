@@ -1,0 +1,17 @@
+[
+  "__init__.py",
+  "_lookup.py",
+  "apiextensions_crossplane_io/__init__.py",
+  "apiextensions_crossplane_io/v1.py",
+  "apiextensions_crossplane_io/v1alpha1.py",
+  "apiextensions_crossplane_io/v1beta1.py",
+  "apiextensions_crossplane_io/v2.py",
+  "ops_crossplane_io/__init__.py",
+  "ops_crossplane_io/v1alpha1.py",
+  "pkg_crossplane_io/__init__.py",
+  "pkg_crossplane_io/v1.py",
+  "pkg_crossplane_io/v1beta1.py",
+  "protection_crossplane_io/__init__.py",
+  "protection_crossplane_io/v1beta1.py",
+  "py.typed"
+]

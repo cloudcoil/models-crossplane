@@ -1,6 +1,6 @@
 [project]
 name = "cloudcoil.models.crossplane"
-version = "0.0.0"
+version = "2.4.0.0"
 description = "Versioned crossplane models for cloudcoil"
 authors = [{ name = "Sambhav Kothari", email = "sambhavs.email@gmail.com" }]
 maintainers = [{ name = "Sambhav Kothari", email = "sambhavs.email@gmail.com" }]
