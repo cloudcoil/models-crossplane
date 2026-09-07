@@ -1,0 +1,71 @@
+
+name: Update Versions
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish validated releases to trigger PyPI publishing
+        type: boolean
+        default: false
+      dry_run:
+        description: Validate and build without changing branches or releases
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-releases
+  cancel-in-progress: false
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        model_version: ['2.4.0']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.14'
+          enable-cache: true
+      - name: Check release source
+        env:
+          SOURCE_REF: ${{ github.ref }}
+        run: test "$SOURCE_REF" = refs/heads/main
+      - name: Prepare upstream inputs
+        env:
+          UPSTREAM: ${{ matrix.model_version }}
+        run: |
+          python tools/release_models.py prepare --upstream "$UPSTREAM"
+          uv lock --upgrade-package cloudcoil
+          uv sync --locked --all-extras --dev
+      - name: Generate and validate
+        run: make gen-models lint test
+      - name: Build and stage release
+        env:
+          GH_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+          UPSTREAM: ${{ matrix.model_version }}
+          PUBLISH: ${{ inputs.publish || (github.event_name == 'push' && vars.AUTO_PUBLISH_MODELS == 'true') }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          gh auth setup-git
+          args=()
+          if [ "$PUBLISH" = true ]; then args+=(--publish); fi
+          if [ "$DRY_RUN" = true ]; then args+=(--dry-run); fi
+          uv run --no-sync python tools/release_models.py finish --upstream "$UPSTREAM" "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions-${{ matrix.model_version }}
+          path: dist/*
+          if-no-files-found: ignore
+
